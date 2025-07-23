@@ -275,6 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentName,
         studentEmail,
         timeRemaining,
+        isSubmitted: false,
         totalQuestions: questions.length,
       });
 
@@ -352,7 +353,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedAttempt = await storage.updateExamAttempt(attemptId, {
         isSubmitted: true,
-        submittedAt: new Date(),
         score,
       });
 

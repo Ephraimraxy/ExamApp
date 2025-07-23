@@ -74,8 +74,8 @@ export const insertExamSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   duration: z.number().min(1),
-  startTime: z.date(),
-  endTime: z.date(),
+  startTime: z.string().transform((str) => new Date(str)),
+  endTime: z.string().transform((str) => new Date(str)),
   isActive: z.boolean().default(false),
   createdBy: z.string().min(1),
 });
