@@ -48,7 +48,14 @@ export default function ExamInterface() {
 
   const startExamMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/exams/${examId}/start`);
+      // Get student info from localStorage
+      const studentInfo = localStorage.getItem('studentInfo');
+      const parsedInfo = studentInfo ? JSON.parse(studentInfo) : {};
+      
+      const response = await apiRequest("POST", `/api/exams/${examId}/start`, {
+        studentName: parsedInfo.name || "Anonymous Student",
+        studentEmail: parsedInfo.email || "student@example.com"
+      });
       return response.json();
     },
     onSuccess: (attempt) => {
