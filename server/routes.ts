@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import session from "express-session";
-import { loginSchema, insertUserSchema, insertExamSchema, insertQuestionSchema } from "@shared/schema";
+import { loginSchema, insertUserSchema, insertExamSchema, insertQuestionSchema } from "@shared/firebase-schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -144,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const examData = insertExamSchema.parse({
         ...req.body,
-        createdBy: 1, // Default creator ID for simplified system
+        createdBy: "default-admin", // Default creator ID for simplified system
       });
       
       const exam = await storage.createExam(examData);
@@ -157,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/exams/:id", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.id);
+      const examId = req.params.id;
       const exam = await storage.getExamById(examId);
       
       if (!exam) {
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/exams/:id", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.id);
+      const examId = req.params.id;
       const examData = req.body;
       
       const exam = await storage.updateExam(examId, examData);
@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/exams/:id", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.id);
+      const examId = req.params.id;
       const success = await storage.deleteExam(examId);
       
       if (!success) {
@@ -209,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Question routes
   app.get("/api/exams/:examId/questions", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.examId);
+      const examId = req.params.examId;
       const questions = await storage.getQuestionsByExamId(examId);
       res.json(questions);
     } catch (error) {
@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/exams/:examId/questions", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.examId);
+      const examId = req.params.examId;
       const questionData = insertQuestionSchema.parse({
         ...req.body,
         examId,
@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Exam attempt routes
   app.post("/api/exams/:examId/start", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.examId);
+      const examId = req.params.examId;
       
       // Check if exam exists and is active
       const exam = await storage.getExamById(examId);
@@ -271,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const attempt = await storage.createExamAttempt({
         examId,
-        userId: 1, // Default user for simplified system
+        userId: "default-user", // Default user for simplified system
         studentName,
         studentEmail,
         timeRemaining,
@@ -287,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/attempts/:attemptId", async (req: any, res) => {
     try {
-      const attemptId = parseInt(req.params.attemptId);
+      const attemptId = req.params.attemptId;
       const attempt = await storage.getExamAttemptById(attemptId);
       
       if (!attempt) {
@@ -303,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/attempts/:attemptId", async (req: any, res) => {
     try {
-      const attemptId = parseInt(req.params.attemptId);
+      const attemptId = req.params.attemptId;
       const updateData = req.body;
       
       const existingAttempt = await storage.getExamAttemptById(attemptId);
@@ -321,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/attempts/:attemptId/submit", async (req: any, res) => {
     try {
-      const attemptId = parseInt(req.params.attemptId);
+      const attemptId = req.params.attemptId;
       
       const attempt = await storage.getExamAttemptById(attemptId);
       if (!attempt) {
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Answer routes
   app.get("/api/attempts/:attemptId/answers", async (req: any, res) => {
     try {
-      const attemptId = parseInt(req.params.attemptId);
+      const attemptId = req.params.attemptId;
       
       // Verify access to attempt
       const attempt = await storage.getExamAttemptById(attemptId);
@@ -384,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/attempts/:attemptId/answers", async (req: any, res) => {
     try {
-      const attemptId = parseInt(req.params.attemptId);
+      const attemptId = req.params.attemptId;
       const { questionId, userAnswer, isMarkedForReview } = req.body;
       
       // Verify access to attempt
@@ -426,7 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // All attempts route (for simplified system)
   app.get("/api/attempts", async (req: any, res) => {
     try {
-      const attempts = await storage.getExamAttemptsByUser(1); // Default user
+      const attempts = await storage.getExamAttemptsByUser("default-user"); // Default user
       res.json(attempts);
     } catch (error) {
       console.error("Error fetching user attempts:", error);
@@ -437,7 +437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Results routes
   app.get("/api/attempts/:attemptId/results", async (req: any, res) => {
     try {
-      const attemptId = parseInt(req.params.attemptId);
+      const attemptId = req.params.attemptId;
       const attempt = await storage.getExamAttemptById(attemptId);
       
       if (!attempt) {
@@ -478,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/exams/:examId/results", async (req: any, res) => {
     try {
-      const examId = parseInt(req.params.examId);
+      const examId = req.params.examId;
       const attempts = await storage.getExamAttemptsByExam(examId);
       
       const results = await Promise.all(

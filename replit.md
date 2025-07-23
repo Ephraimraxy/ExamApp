@@ -20,11 +20,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
-- **Database ORM**: Drizzle ORM with PostgreSQL
-- **Database Provider**: Neon Database (serverless PostgreSQL)
-- **Session Management**: Express sessions with PostgreSQL store
+- **Database**: Firebase Firestore (NoSQL document database)
+- **Session Management**: Express sessions with in-memory store
 - **Authentication**: Session-based auth with bcrypt password hashing
 - **API Design**: RESTful endpoints with proper error handling
+- **Firebase Integration**: Firestore for data persistence with real-time capabilities
 
 ### Build & Development
 - **Bundler**: Vite for frontend development and building
@@ -40,9 +40,9 @@ Preferred communication style: Simple, everyday language.
 - Public exam creation and management
 - Open access to all exam results and analytics
 
-### Database Schema
-- **Users**: Authentication and role management
-- **Exams**: Test configuration and scheduling
+### Database Schema (Firebase Firestore)
+- **Users**: Authentication and role management stored in Firebase
+- **Exams**: Test configuration and scheduling in Firestore collections
 - **Questions**: Multiple choice, true/false, and fill-in-the-blank support
 - **Exam Attempts**: Student test sessions and progress tracking
 - **Answers**: Student responses with auto-grading capability
