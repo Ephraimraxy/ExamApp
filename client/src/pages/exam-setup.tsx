@@ -62,7 +62,7 @@ export default function ExamSetup() {
       duration: 60,
       startTime: "",
       endTime: "",
-      isActive: false,
+      isActive: true,
       questions: [
         {
           questionText: "",
@@ -125,13 +125,14 @@ export default function ExamSetup() {
 
       return exam;
     },
-    onSuccess: () => {
+    onSuccess: (exam) => {
       queryClient.invalidateQueries({ queryKey: ["/api/exams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/exams/available"] });
       toast({
         title: "Exam created",
-        description: "The exam has been created successfully.",
+        description: "The exam has been created successfully. You can now start the exam.",
       });
-      navigate("/admin");
+      navigate("/exams");
     },
     onError: (error) => {
       toast({
@@ -161,11 +162,12 @@ export default function ExamSetup() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/exams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/exams/available"] });
       toast({
         title: "Exam updated",
         description: "The exam has been updated successfully.",
       });
-      navigate("/admin");
+      navigate("/exams");
     },
     onError: (error) => {
       toast({
@@ -218,11 +220,11 @@ export default function ExamSetup() {
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate("/")}
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            Back to Home
           </Button>
           <h1 className="text-3xl font-bold text-slate-900">
             {isEdit ? "Edit Exam" : "Create New Exam"}
@@ -308,7 +310,8 @@ export default function ExamSetup() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isActive"
-                  {...form.register("isActive")}
+                  checked={form.watch("isActive")}
+                  onCheckedChange={(checked) => form.setValue("isActive", checked)}
                 />
                 <Label htmlFor="isActive">Make exam active</Label>
               </div>
@@ -457,7 +460,7 @@ export default function ExamSetup() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("/")}
             >
               Cancel
             </Button>

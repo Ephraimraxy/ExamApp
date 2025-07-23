@@ -125,14 +125,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/exams/available", async (req: any, res) => {
     try {
-      // Show all active exams within time range
-      const now = new Date();
+      // Show all active exams (simplified filtering)
       const allExams = await storage.getAllExams();
-      const availableExams = allExams.filter(exam => {
-        const startTime = new Date(exam.startTime);
-        const endTime = new Date(exam.endTime);
-        return exam.isActive && startTime <= now && endTime >= now;
-      });
+      const availableExams = allExams.filter(exam => exam.isActive);
+      console.log("Available exams:", availableExams.length, "out of", allExams.length, "total exams");
       res.json(availableExams);
     } catch (error) {
       console.error("Error fetching available exams:", error);

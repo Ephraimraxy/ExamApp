@@ -22,9 +22,10 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Express.js with TypeScript
 - **Database**: Firebase Firestore (NoSQL document database)
 - **Session Management**: Express sessions with in-memory store
-- **Authentication**: Session-based auth with bcrypt password hashing
+- **Authentication**: Session-based auth with bcrypt password hashing (simplified - no login required)
 - **API Design**: RESTful endpoints with proper error handling
 - **Firebase Integration**: Firestore for data persistence with real-time capabilities
+- **Migration Status**: Successfully migrated from PostgreSQL to Firebase Firestore with string-based IDs
 
 ### Build & Development
 - **Bundler**: Vite for frontend development and building
