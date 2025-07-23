@@ -9,6 +9,7 @@ import ExamInterface from "@/pages/exam-interface";
 import ExamSetup from "@/pages/exam-setup";
 import Results from "@/pages/results";
 import AllResults from "@/pages/all-results";
+import ExamRecords from "@/pages/exam-records";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/exam/:examId" component={ExamInterface} />
       <Route path="/results" component={AllResults} />
       <Route path="/results/:attemptId" component={Results} />
+      <Route path="/exam-records" component={ExamRecords} />
       <Route component={NotFound} />
     </Switch>
   );

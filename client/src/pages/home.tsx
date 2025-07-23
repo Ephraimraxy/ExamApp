@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, PlusCircle, BookOpen, BarChart3 } from "lucide-react";
+import { FileText, PlusCircle, BookOpen, BarChart3, Archive } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {/* Setup Exam */}
           <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
             <CardHeader className="text-center pb-4">
@@ -78,6 +78,27 @@ export default function Home() {
                 className="w-full bg-purple-600 hover:bg-purple-700"
               >
                 View Results
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* View Exam Records */}
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Archive className="w-8 h-8 text-orange-600" />
+              </div>
+              <CardTitle className="text-xl text-slate-900">Exam Records</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 mb-6">
+                View all past exam records and details for future reference
+              </p>
+              <Button 
+                onClick={() => navigate("/exam-records")}
+                className="w-full bg-orange-600 hover:bg-orange-700"
+              >
+                View Records
               </Button>
             </CardContent>
           </Card>
