@@ -110,53 +110,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Middleware to check authentication
-  const requireAuth = (req: any, res: any, next: any) => {
-    const session = req.session;
-    if (!session?.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    req.userId = session.userId;
-    req.userRole = session.role;
-    next();
-  };
+  // Authentication middleware removed for simplified system
 
-  // Middleware to check admin role
-  const requireAdmin = (req: any, res: any, next: any) => {
-    if (req.userRole !== "admin") {
-      return res.status(403).json({ message: "Admin access required" });
-    }
-    next();
-  };
-
-  // Exam routes
-  app.get("/api/exams", requireAuth, async (req: any, res) => {
+  // Public exam routes (no authentication required)
+  app.get("/api/exams", async (req: any, res) => {
     try {
-      if (req.userRole === "admin") {
-        const exams = await storage.getExamsByCreator(req.userId);
-        res.json(exams);
-      } else {
-        // For students, only show active exams within time range
-        const now = new Date();
-        const allExams = await storage.getActiveExams();
-        const availableExams = allExams.filter(exam => {
-          const startTime = new Date(exam.startTime);
-          const endTime = new Date(exam.endTime);
-          return exam.isActive && startTime <= now && endTime >= now;
-        });
-        res.json(availableExams);
-      }
+      const exams = await storage.getAllExams();
+      res.json(exams);
     } catch (error) {
       console.error("Error fetching exams:", error);
       res.status(500).json({ message: "Failed to fetch exams" });
     }
   });
 
-  app.post("/api/exams", requireAuth, requireAdmin, async (req: any, res) => {
+  app.get("/api/exams/available", async (req: any, res) => {
+    try {
+      // Show all active exams within time range
+      const now = new Date();
+      const allExams = await storage.getAllExams();
+      const availableExams = allExams.filter(exam => {
+        const startTime = new Date(exam.startTime);
+        const endTime = new Date(exam.endTime);
+        return exam.isActive && startTime <= now && endTime >= now;
+      });
+      res.json(availableExams);
+    } catch (error) {
+      console.error("Error fetching available exams:", error);
+      res.status(500).json({ message: "Failed to fetch exams" });
+    }
+  });
+
+  app.post("/api/exams", async (req: any, res) => {
     try {
       const examData = insertExamSchema.parse({
         ...req.body,
-        createdBy: req.userId,
+        createdBy: 1, // Default creator ID for simplified system
       });
       
       const exam = await storage.createExam(examData);
@@ -167,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/exams/:id", requireAuth, async (req: any, res) => {
+  app.get("/api/exams/:id", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.id);
       const exam = await storage.getExamById(examId);
@@ -176,10 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Exam not found" });
       }
 
-      // Students can only see active exams
-      if (req.userRole === "student" && !exam.isActive) {
-        return res.status(403).json({ message: "Exam not available" });
-      }
+      // Allow access to all exams
 
       res.json(exam);
     } catch (error) {
@@ -188,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/exams/:id", requireAuth, requireAdmin, async (req: any, res) => {
+  app.put("/api/exams/:id", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.id);
       const examData = req.body;
@@ -205,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/exams/:id", requireAuth, requireAdmin, async (req: any, res) => {
+  app.delete("/api/exams/:id", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.id);
       const success = await storage.deleteExam(examId);
@@ -222,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Question routes
-  app.get("/api/exams/:examId/questions", requireAuth, async (req: any, res) => {
+  app.get("/api/exams/:examId/questions", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.examId);
       const questions = await storage.getQuestionsByExamId(examId);
@@ -233,7 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/exams/:examId/questions", requireAuth, requireAdmin, async (req: any, res) => {
+  app.post("/api/exams/:examId/questions", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.examId);
       const questionData = insertQuestionSchema.parse({
@@ -250,7 +235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Exam attempt routes
-  app.post("/api/exams/:examId/start", requireAuth, async (req: any, res) => {
+  app.post("/api/exams/:examId/start", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.examId);
       
@@ -273,15 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Exam has ended" });
       }
 
-      // Check if user already has an attempt
-      const existingAttempt = await storage.getExamAttemptByUserAndExam(req.userId, examId);
-      if (existingAttempt) {
-        if (existingAttempt.isSubmitted) {
-          return res.status(400).json({ message: "Exam already completed" });
-        }
-        // Return existing attempt if not submitted
-        return res.json(existingAttempt);
-      }
+      // For simplified system, allow multiple attempts
 
       // Get questions count
       const questions = await storage.getQuestionsByExamId(examId);
@@ -290,9 +267,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const remainingMinutes = Math.max(0, Math.floor((endTime.getTime() - now.getTime()) / (1000 * 60)));
       const timeRemaining = Math.min(exam.duration * 60, remainingMinutes * 60); // in seconds
       
+      const { studentName = "Anonymous Student", studentEmail = "student@example.com" } = req.body;
+      
       const attempt = await storage.createExamAttempt({
         examId,
-        userId: req.userId,
+        userId: 1, // Default user for simplified system
+        studentName,
+        studentEmail,
         timeRemaining,
         totalQuestions: questions.length,
       });
@@ -304,12 +285,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/attempts/:attemptId", requireAuth, async (req: any, res) => {
+  app.get("/api/attempts/:attemptId", async (req: any, res) => {
     try {
       const attemptId = parseInt(req.params.attemptId);
       const attempt = await storage.getExamAttemptById(attemptId);
       
-      if (!attempt || (req.userRole === "student" && attempt.userId !== req.userId)) {
+      if (!attempt) {
         return res.status(404).json({ message: "Attempt not found" });
       }
 
@@ -320,13 +301,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/attempts/:attemptId", requireAuth, async (req: any, res) => {
+  app.put("/api/attempts/:attemptId", async (req: any, res) => {
     try {
       const attemptId = parseInt(req.params.attemptId);
       const updateData = req.body;
       
       const existingAttempt = await storage.getExamAttemptById(attemptId);
-      if (!existingAttempt || (req.userRole === "student" && existingAttempt.userId !== req.userId)) {
+      if (!existingAttempt) {
         return res.status(404).json({ message: "Attempt not found" });
       }
 
@@ -338,12 +319,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/attempts/:attemptId/submit", requireAuth, async (req: any, res) => {
+  app.post("/api/attempts/:attemptId/submit", async (req: any, res) => {
     try {
       const attemptId = parseInt(req.params.attemptId);
       
       const attempt = await storage.getExamAttemptById(attemptId);
-      if (!attempt || (req.userRole === "student" && attempt.userId !== req.userId)) {
+      if (!attempt) {
         return res.status(404).json({ message: "Attempt not found" });
       }
 
@@ -383,13 +364,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Answer routes
-  app.get("/api/attempts/:attemptId/answers", requireAuth, async (req: any, res) => {
+  app.get("/api/attempts/:attemptId/answers", async (req: any, res) => {
     try {
       const attemptId = parseInt(req.params.attemptId);
       
       // Verify access to attempt
       const attempt = await storage.getExamAttemptById(attemptId);
-      if (!attempt || (req.userRole === "student" && attempt.userId !== req.userId)) {
+      if (!attempt) {
         return res.status(404).json({ message: "Attempt not found" });
       }
       
@@ -401,14 +382,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/attempts/:attemptId/answers", requireAuth, async (req: any, res) => {
+  app.post("/api/attempts/:attemptId/answers", async (req: any, res) => {
     try {
       const attemptId = parseInt(req.params.attemptId);
       const { questionId, userAnswer, isMarkedForReview } = req.body;
       
       // Verify access to attempt
       const attempt = await storage.getExamAttemptById(attemptId);
-      if (!attempt || attempt.userId !== req.userId) {
+      if (!attempt) {
         return res.status(404).json({ message: "Attempt not found" });
       }
 
@@ -442,14 +423,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Student attempts route
-  app.get("/api/attempts", requireAuth, async (req: any, res) => {
+  // All attempts route (for simplified system)
+  app.get("/api/attempts", async (req: any, res) => {
     try {
-      if (req.userRole !== "student") {
-        return res.status(403).json({ message: "Student access required" });
-      }
-      
-      const attempts = await storage.getExamAttemptsByUser(req.userId);
+      const attempts = await storage.getExamAttemptsByUser(1); // Default user
       res.json(attempts);
     } catch (error) {
       console.error("Error fetching user attempts:", error);
@@ -458,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Results routes
-  app.get("/api/attempts/:attemptId/results", requireAuth, async (req: any, res) => {
+  app.get("/api/attempts/:attemptId/results", async (req: any, res) => {
     try {
       const attemptId = parseInt(req.params.attemptId);
       const attempt = await storage.getExamAttemptById(attemptId);
@@ -467,10 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Attempt not found" });
       }
 
-      // Students can only see their own results, admins can see all
-      if (req.userRole === "student" && attempt.userId !== req.userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      // Allow access to all results in simplified system
 
       if (!attempt.isSubmitted) {
         return res.status(400).json({ message: "Exam not submitted yet" });
@@ -502,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/exams/:examId/results", requireAuth, requireAdmin, async (req: any, res) => {
+  app.get("/api/exams/:examId/results", async (req: any, res) => {
     try {
       const examId = parseInt(req.params.examId);
       const attempts = await storage.getExamAttemptsByExam(examId);

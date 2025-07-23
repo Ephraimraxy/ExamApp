@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack web application for online student tests and examinations built with React (frontend), Express.js (backend), PostgreSQL (database), and TypeScript. The system is designed for reliability, security, user-friendliness, and auto-grading efficiency, supporting both administrators (teachers/examiners) and students with role-based access control.
+This is a simplified full-stack web application for online student tests and examinations built with React (frontend), Express.js (backend), PostgreSQL (database), and TypeScript. The system is designed for direct exam setup and testing without authentication, featuring multiple question types, one-question-per-page interface, automatic grading, and results export capabilities.
 
 ## User Preferences
 
@@ -34,11 +34,11 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Components
 
-### Authentication System
-- Session-based authentication using express-session
-- Password hashing with bcrypt
-- Role-based access control (admin/student)
-- Protected routes with middleware validation
+### Simplified Access System
+- No authentication required - direct access to all features
+- Students provide name and email when starting exams
+- Public exam creation and management
+- Open access to all exam results and analytics
 
 ### Database Schema
 - **Users**: Authentication and role management
@@ -56,18 +56,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Data Flow
 
-### Admin Workflow
-1. Admin logs in and accesses admin dashboard
+### Exam Setup Workflow
+1. Anyone can access the home page to create exams
 2. Creates exams with questions, duration, and scheduling
-3. Activates exams for student access
-4. Views student results and performance analytics
+3. Multiple question types: MCQ, True/False, Fill-in-the-Blank
+4. Activates exams for public access
 
-### Student Workflow
-1. Student logs in and sees available exams
-2. Starts exam session with timer initialization
-3. Navigates through questions with progress tracking
-4. Submits exam automatically or manually
-5. Views results with detailed scoring breakdown
+### Student Testing Workflow
+1. Students access available exams without login
+2. Provides name and email to start exam session
+3. One-question-per-page interface with navigation
+4. Timer with automatic submission when time expires
+5. Immediate results with detailed scoring
+6. Results export as CSV/PDF
 
 ### Exam Session Management
 - Real-time timer with automatic submission

@@ -41,6 +41,8 @@ export const examAttempts = pgTable("exam_attempts", {
   id: serial("id").primaryKey(),
   examId: integer("exam_id").notNull().references(() => exams.id),
   userId: integer("user_id").notNull().references(() => users.id),
+  studentName: text("student_name"),
+  studentEmail: text("student_email"),
   startedAt: timestamp("started_at").defaultNow(),
   submittedAt: timestamp("submitted_at"),
   timeRemaining: integer("time_remaining"), // in seconds
@@ -122,6 +124,7 @@ export const insertQuestionSchema = createInsertSchema(questions).omit({
 export const insertExamAttemptSchema = createInsertSchema(examAttempts).omit({
   id: true,
   startedAt: true,
+  submittedAt: true,
 });
 
 export const insertAnswerSchema = createInsertSchema(answers).omit({

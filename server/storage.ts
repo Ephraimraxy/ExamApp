@@ -27,6 +27,7 @@ export interface IStorage {
   // Exam operations
   createExam(exam: InsertExam): Promise<Exam>;
   getExamById(id: number): Promise<Exam | undefined>;
+  getAllExams(): Promise<Exam[]>;
   getExamsByCreator(creatorId: number): Promise<Exam[]>;
   getActiveExams(): Promise<Exam[]>;
   updateExam(id: number, exam: Partial<InsertExam>): Promise<Exam | undefined>;
@@ -79,6 +80,10 @@ export class DatabaseStorage implements IStorage {
   async getExamById(id: number): Promise<Exam | undefined> {
     const [exam] = await db.select().from(exams).where(eq(exams.id, id));
     return exam || undefined;
+  }
+
+  async getAllExams(): Promise<Exam[]> {
+    return await db.select().from(exams).orderBy(desc(exams.createdAt));
   }
 
   async getExamsByCreator(creatorId: number): Promise<Exam[]> {
