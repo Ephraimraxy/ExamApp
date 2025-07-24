@@ -25,6 +25,10 @@ import {
   type InsertExamAttempt,
   type Answer,
   type InsertAnswer,
+  type Video,
+  type InsertVideo,
+  type File,
+  type InsertFile,
 } from "@shared/firebase-schema";
 
 export interface IStorage {
@@ -61,6 +65,18 @@ export interface IStorage {
   getAnswersByAttemptId(attemptId: string): Promise<Answer[]>;
   updateAnswer(id: string, answer: Partial<InsertAnswer>): Promise<Answer | undefined>;
   getAnswerByAttemptAndQuestion(attemptId: string, questionId: string): Promise<Answer | undefined>;
+
+  // Video operations
+  createVideo(video: InsertVideo): Promise<Video>;
+  getVideoById(id: string): Promise<Video | undefined>;
+  getAllVideos(): Promise<Video[]>;
+  deleteVideo(id: string): Promise<boolean>;
+
+  // File operations
+  createFile(file: InsertFile): Promise<File>;
+  getFileById(id: string): Promise<File | undefined>;
+  getAllFiles(): Promise<File[]>;
+  deleteFile(id: string): Promise<boolean>;
 }
 
 export class FirebaseStorage implements IStorage {
@@ -330,6 +346,74 @@ export class FirebaseStorage implements IStorage {
     if (querySnapshot.empty) return undefined;
     const answerDoc = querySnapshot.docs[0];
     return { id: answerDoc.id, ...answerDoc.data() } as Answer;
+  }
+
+  // Video operations
+  async createVideo(insertVideo: InsertVideo): Promise<Video> {
+    const videoData = {
+      ...insertVideo,
+      uploadedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(collection(db, "videos"), videoData);
+    return this.convertTimestamps({ id: docRef.id, ...videoData }) as Video;
+  }
+
+  async getVideoById(id: string): Promise<Video | undefined> {
+    const videoDoc = await getDoc(doc(db, "videos", id));
+    if (!videoDoc.exists()) return undefined;
+    return this.convertTimestamps({ id: videoDoc.id, ...videoDoc.data() }) as Video;
+  }
+
+  async getAllVideos(): Promise<Video[]> {
+    const q = query(collection(db, "videos"), orderBy("uploadedAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => 
+      this.convertTimestamps({ id: doc.id, ...doc.data() }) as Video
+    );
+  }
+
+  async deleteVideo(id: string): Promise<boolean> {
+    try {
+      await deleteDoc(doc(db, "videos", id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      return false;
+    }
+  }
+
+  // File operations
+  async createFile(insertFile: InsertFile): Promise<File> {
+    const fileData = {
+      ...insertFile,
+      uploadedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(collection(db, "files"), fileData);
+    return this.convertTimestamps({ id: docRef.id, ...fileData }) as File;
+  }
+
+  async getFileById(id: string): Promise<File | undefined> {
+    const fileDoc = await getDoc(doc(db, "files", id));
+    if (!fileDoc.exists()) return undefined;
+    return this.convertTimestamps({ id: fileDoc.id, ...fileDoc.data() }) as File;
+  }
+
+  async getAllFiles(): Promise<File[]> {
+    const q = query(collection(db, "files"), orderBy("uploadedAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => 
+      this.convertTimestamps({ id: doc.id, ...doc.data() }) as File
+    );
+  }
+
+  async deleteFile(id: string): Promise<boolean> {
+    try {
+      await deleteDoc(doc(db, "files", id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      return false;
+    }
   }
 }
 

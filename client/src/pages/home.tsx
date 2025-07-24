@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, PlusCircle, BookOpen, BarChart3, Archive } from "lucide-react";
+import { FileText, PlusCircle, BookOpen, BarChart3, Archive, Video, Upload } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Setup Exam */}
           <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
             <CardHeader className="text-center pb-4">
@@ -99,6 +99,48 @@ export default function Home() {
                 className="w-full bg-orange-600 hover:bg-orange-700"
               >
                 View Records
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Video Upload */}
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Video className="w-8 h-8 text-red-600" />
+              </div>
+              <CardTitle className="text-xl text-slate-900">Video Upload</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 mb-6">
+                Upload and manage video files with play and delete functionality
+              </p>
+              <Button 
+                onClick={() => navigate("/videos")}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                Manage Videos
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* File Upload */}
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Upload className="w-8 h-8 text-teal-600" />
+              </div>
+              <CardTitle className="text-xl text-slate-900">File Upload</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 mb-6">
+                Upload files of different formats and sizes with download options
+              </p>
+              <Button 
+                onClick={() => navigate("/files")}
+                className="w-full bg-teal-600 hover:bg-teal-700"
+              >
+                Manage Files
               </Button>
             </CardContent>
           </Card>

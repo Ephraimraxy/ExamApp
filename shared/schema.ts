@@ -60,6 +60,27 @@ export const answers = pgTable("answers", {
   isMarkedForReview: boolean("is_marked_for_review").default(false),
 });
 
+export const videos = pgTable("videos", {
+  id: serial("id").primaryKey(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(), // in bytes
+  duration: integer("duration"), // in seconds
+  path: text("path").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+export const files = pgTable("files", {
+  id: serial("id").primaryKey(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(), // in bytes
+  path: text("path").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   examsCreated: many(exams),
@@ -131,6 +152,16 @@ export const insertAnswerSchema = createInsertSchema(answers).omit({
   id: true,
 });
 
+export const insertVideoSchema = createInsertSchema(videos).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export const insertFileSchema = createInsertSchema(files).omit({
+  id: true,
+  uploadedAt: true,
+});
+
 // Login schema
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -148,4 +179,8 @@ export type ExamAttempt = typeof examAttempts.$inferSelect;
 export type InsertExamAttempt = z.infer<typeof insertExamAttemptSchema>;
 export type Answer = typeof answers.$inferSelect;
 export type InsertAnswer = z.infer<typeof insertAnswerSchema>;
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = z.infer<typeof insertVideoSchema>;
+export type File = typeof files.$inferSelect;
+export type InsertFile = z.infer<typeof insertFileSchema>;
 export type LoginData = z.infer<typeof loginSchema>;

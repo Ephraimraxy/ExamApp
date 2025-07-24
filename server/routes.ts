@@ -3,10 +3,74 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import session from "express-session";
-import { loginSchema, insertUserSchema, insertExamSchema, insertQuestionSchema } from "@shared/firebase-schema";
+import { loginSchema, insertUserSchema, insertExamSchema, insertQuestionSchema, insertVideoSchema, insertFileSchema } from "@shared/firebase-schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Create uploads directory if it doesn't exist
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  
+  const videosDir = path.join(uploadsDir, 'videos');
+  const filesDir = path.join(uploadsDir, 'files');
+  
+  if (!fs.existsSync(videosDir)) {
+    fs.mkdirSync(videosDir, { recursive: true });
+  }
+  
+  if (!fs.existsSync(filesDir)) {
+    fs.mkdirSync(filesDir, { recursive: true });
+  }
+
+  // Multer configuration for video uploads
+  const videoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, videosDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+
+  // Multer configuration for file uploads
+  const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, filesDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+
+  const uploadVideo = multer({
+    storage: videoStorage,
+    limits: {
+      fileSize: 500 * 1024 * 1024, // 500MB limit for videos
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['video/mp4', 'video/avi', 'video/mkv', 'video/mov', 'video/wmv'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only video files are allowed for video upload'));
+      }
+    }
+  });
+
+  const uploadFile = multer({
+    storage: fileStorage,
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB limit for files
+    }
+  });
+
   // Session configuration
   app.use(session({
     secret: process.env.SESSION_SECRET || 'exam-system-secret-key',
@@ -534,6 +598,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching exam results:", error);
       res.status(500).json({ message: "Failed to fetch exam results" });
+    }
+  });
+
+  // Video upload routes
+  app.post("/api/videos/upload", uploadVideo.single('video'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
+      }
+
+      const videoData = {
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+        duration: undefined, // Can be populated later with video metadata
+      };
+
+      const video = await storage.createVideo(videoData);
+      res.status(201).json(video);
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      res.status(500).json({ message: "Failed to upload video" });
+    }
+  });
+
+  app.get("/api/videos", async (req: any, res) => {
+    try {
+      const videos = await storage.getAllVideos();
+      res.json(videos);
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+      res.status(500).json({ message: "Failed to fetch videos" });
+    }
+  });
+
+  app.get("/api/videos/:id", async (req: any, res) => {
+    try {
+      const video = await storage.getVideoById(req.params.id);
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+      res.json(video);
+    } catch (error) {
+      console.error("Error fetching video:", error);
+      res.status(500).json({ message: "Failed to fetch video" });
+    }
+  });
+
+  app.delete("/api/videos/:id", async (req: any, res) => {
+    try {
+      const video = await storage.getVideoById(req.params.id);
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+
+      // Delete the file from filesystem
+      if (fs.existsSync(video.path)) {
+        fs.unlinkSync(video.path);
+      }
+
+      const success = await storage.deleteVideo(req.params.id);
+      if (success) {
+        res.json({ message: "Video deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete video" });
+      }
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      res.status(500).json({ message: "Failed to delete video" });
+    }
+  });
+
+  // Serve video files
+  app.get("/api/videos/:id/stream", async (req: any, res) => {
+    try {
+      const video = await storage.getVideoById(req.params.id);
+      if (!video || !fs.existsSync(video.path)) {
+        return res.status(404).json({ message: "Video file not found" });
+      }
+
+      const stat = fs.statSync(video.path);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = (end - start) + 1;
+        const file = fs.createReadStream(video.path, { start, end });
+        const head = {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': video.mimeType,
+        };
+        res.writeHead(206, head);
+        file.pipe(res);
+      } else {
+        const head = {
+          'Content-Length': fileSize,
+          'Content-Type': video.mimeType,
+        };
+        res.writeHead(200, head);
+        fs.createReadStream(video.path).pipe(res);
+      }
+    } catch (error) {
+      console.error("Error streaming video:", error);
+      res.status(500).json({ message: "Failed to stream video" });
+    }
+  });
+
+  // File upload routes
+  app.post("/api/files/upload", uploadFile.single('file'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const fileData = {
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+      };
+
+      const file = await storage.createFile(fileData);
+      res.status(201).json(file);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: "Failed to upload file" });
+    }
+  });
+
+  app.get("/api/files", async (req: any, res) => {
+    try {
+      const files = await storage.getAllFiles();
+      res.json(files);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      res.status(500).json({ message: "Failed to fetch files" });
+    }
+  });
+
+  app.get("/api/files/:id", async (req: any, res) => {
+    try {
+      const file = await storage.getFileById(req.params.id);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      res.json(file);
+    } catch (error) {
+      console.error("Error fetching file:", error);
+      res.status(500).json({ message: "Failed to fetch file" });
+    }
+  });
+
+  app.delete("/api/files/:id", async (req: any, res) => {
+    try {
+      const file = await storage.getFileById(req.params.id);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Delete the file from filesystem
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+
+      const success = await storage.deleteFile(req.params.id);
+      if (success) {
+        res.json({ message: "File deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete file" });
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+
+  // Serve uploaded files
+  app.get("/api/files/:id/download", async (req: any, res) => {
+    try {
+      const file = await storage.getFileById(req.params.id);
+      if (!file || !fs.existsSync(file.path)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+      res.setHeader('Content-Type', file.mimeType);
+      fs.createReadStream(file.path).pipe(res);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      res.status(500).json({ message: "Failed to download file" });
     }
   });
 

@@ -60,6 +60,27 @@ export interface Answer {
   isMarkedForReview: boolean;
 }
 
+export interface Video {
+  id: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number; // in bytes
+  duration?: number; // in seconds
+  path: string;
+  uploadedAt: Date;
+}
+
+export interface File {
+  id: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number; // in bytes
+  path: string;
+  uploadedAt: Date;
+}
+
 // Zod schemas for validation
 export const insertUserSchema = z.object({
   username: z.string().min(1),
@@ -109,6 +130,23 @@ export const insertAnswerSchema = z.object({
   isMarkedForReview: z.boolean().default(false),
 });
 
+export const insertVideoSchema = z.object({
+  fileName: z.string().min(1),
+  originalName: z.string().min(1),
+  mimeType: z.string().min(1),
+  size: z.number().min(1),
+  duration: z.number().optional(),
+  path: z.string().min(1),
+});
+
+export const insertFileSchema = z.object({
+  fileName: z.string().min(1),
+  originalName: z.string().min(1),
+  mimeType: z.string().min(1),
+  size: z.number().min(1),
+  path: z.string().min(1),
+});
+
 // Login schema
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -121,4 +159,6 @@ export type InsertExam = z.infer<typeof insertExamSchema>;
 export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
 export type InsertExamAttempt = z.infer<typeof insertExamAttemptSchema>;
 export type InsertAnswer = z.infer<typeof insertAnswerSchema>;
+export type InsertVideo = z.infer<typeof insertVideoSchema>;
+export type InsertFile = z.infer<typeof insertFileSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
