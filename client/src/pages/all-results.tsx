@@ -24,7 +24,8 @@ import {
   BarChart3,
   FileText,
   Users,
-  Clock
+  Clock,
+  Home
 } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Exam, ExamAttempt } from "@shared/schema";

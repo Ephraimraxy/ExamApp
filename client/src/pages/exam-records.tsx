@@ -15,7 +15,8 @@ import {
   Calendar,
   Clock,
   Users,
-  FileText
+  FileText,
+  Home
 } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Exam } from "@shared/schema";

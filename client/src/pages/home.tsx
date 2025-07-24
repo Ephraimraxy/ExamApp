@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, PlusCircle, BookOpen, BarChart3, Archive, Video, Upload } from "lucide-react";
+import { FileText, PlusCircle, BookOpen, BarChart3, Archive, Video, Upload, Eye } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -141,6 +141,48 @@ export default function Home() {
                 className="w-full bg-teal-600 hover:bg-teal-700"
               >
                 Manage Files
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Video Details */}
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Eye className="w-8 h-8 text-indigo-600" />
+              </div>
+              <CardTitle className="text-xl text-slate-900">Video Details</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 mb-6">
+                View all uploaded videos in a detailed table with play and download options
+              </p>
+              <Button 
+                onClick={() => navigate("/video-details")}
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+              >
+                View Video Details
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* File Details */}
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-cyan-600" />
+              </div>
+              <CardTitle className="text-xl text-slate-900">File Details</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 mb-6">
+                View all uploaded files in a detailed table with view and download options
+              </p>
+              <Button 
+                onClick={() => navigate("/file-details")}
+                className="w-full bg-cyan-600 hover:bg-cyan-700"
+              >
+                View File Details
               </Button>
             </CardContent>
           </Card>

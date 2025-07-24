@@ -12,6 +12,8 @@ import AllResults from "@/pages/all-results";
 import ExamRecords from "@/pages/exam-records";
 import VideoUpload from "@/pages/video-upload";
 import FileUpload from "@/pages/file-upload";
+import VideoDetails from "@/pages/video-details";
+import FileDetails from "@/pages/file-details";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/student" component={AvailableExams} />
       <Route path="/videos" component={VideoUpload} />
       <Route path="/files" component={FileUpload} />
+      <Route path="/video-details" component={VideoDetails} />
+      <Route path="/file-details" component={FileDetails} />
       <Route component={NotFound} />
     </Switch>
   );

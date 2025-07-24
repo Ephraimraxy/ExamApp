@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, Download, Trash2, FileText, Eye } from "lucide-react";
+import { Upload, Download, Trash2, FileText, Eye, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 interface UploadedFile {
   id: string;
@@ -24,6 +25,7 @@ export default function FileUpload() {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const { data: files = [], isLoading } = useQuery<UploadedFile[]>({
     queryKey: ['/api/files'],
@@ -151,14 +153,24 @@ export default function FileUpload() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <FileText className="w-8 h-8" />
-          File Upload System
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Upload and manage files of different sizes and formats. Max file size: 100MB
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+            <FileText className="w-8 h-8" />
+            File Upload System
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Upload and manage files of different sizes and formats. Max file size: 100MB
+          </p>
+        </div>
+        <Button
+          onClick={() => navigate("/")}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Home className="w-4 h-4" />
+          Back to Home
+        </Button>
       </div>
 
       {/* Upload Section */}

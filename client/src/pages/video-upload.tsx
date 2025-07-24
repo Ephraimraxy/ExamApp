@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, Play, Trash2, Video } from "lucide-react";
+import { Upload, Play, Trash2, Video, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 interface VideoFile {
   id: string;
@@ -25,6 +26,7 @@ export default function VideoUpload() {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const { data: videos = [], isLoading } = useQuery<VideoFile[]>({
     queryKey: ['/api/videos'],
@@ -132,14 +134,24 @@ export default function VideoUpload() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <Video className="w-8 h-8" />
-          Video Upload System
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Upload and manage your video files. Supported formats: MP4, AVI, MKV, MOV, WMV
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+            <Video className="w-8 h-8" />
+            Video Upload System
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Upload and manage your video files. Supported formats: MP4, AVI, MKV, MOV, WMV
+          </p>
+        </div>
+        <Button
+          onClick={() => navigate("/")}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Home className="w-4 h-4" />
+          Back to Home
+        </Button>
       </div>
 
       {/* Upload Section */}

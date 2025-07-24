@@ -12,7 +12,8 @@ import {
   ArrowLeft,
   User,
   Mail,
-  Play
+  Play,
+  Home
 } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Exam } from "@shared/schema";
@@ -57,14 +58,22 @@ export default function AvailableExams() {
     return (
       <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <Button 
-            variant="ghost" 
-            onClick={() => setSelectedExam(null)}
-            className="mb-6"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Exams
-          </Button>
+          <div className="flex gap-4 mb-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => setSelectedExam(null)}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Exams
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/")}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </div>
 
           <Card className="mb-6">
             <CardHeader>
