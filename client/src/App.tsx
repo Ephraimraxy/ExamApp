@@ -24,6 +24,7 @@ function Router() {
       <Route path="/results" component={AllResults} />
       <Route path="/results/:attemptId" component={Results} />
       <Route path="/exam-records" component={ExamRecords} />
+      <Route path="/student" component={AvailableExams} />
       <Route component={NotFound} />
     </Switch>
   );

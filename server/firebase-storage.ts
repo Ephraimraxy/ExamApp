@@ -184,15 +184,34 @@ export class FirebaseStorage implements IStorage {
   }
 
   async getQuestionsByExamId(examId: string): Promise<Question[]> {
-    const q = query(
-      collection(db, "questions"), 
-      where("examId", "==", examId),
-      orderBy("orderIndex", "asc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => 
-      ({ id: doc.id, ...doc.data() }) as Question
-    );
+    try {
+      // For now, return empty array to handle indexing issues temporarily
+      console.log(`Attempting to fetch questions for exam: ${examId}`);
+      
+      // Get all questions without any query to avoid indexing issues
+      const questionsSnapshot = await getDocs(collection(db, "questions"));
+      console.log(`Total questions found: ${questionsSnapshot.docs.length}`);
+      
+      const allQuestions = questionsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log(`Question data:`, data);
+        return { id: doc.id, ...data } as Question;
+      });
+      
+      // Filter by examId
+      const examQuestions = allQuestions.filter(question => {
+        console.log(`Checking question ${question.id} for exam ${question.examId} against ${examId}`);
+        return question.examId === examId;
+      });
+      
+      console.log(`Found ${examQuestions.length} questions for exam ${examId}`);
+      
+      // Sort by orderIndex
+      return examQuestions.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+    } catch (error) {
+      console.error('Error getting questions by exam ID:', error);
+      throw error;
+    }
   }
 
   async updateQuestion(id: string, questionData: Partial<InsertQuestion>): Promise<Question | undefined> {
