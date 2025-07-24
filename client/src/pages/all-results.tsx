@@ -43,14 +43,21 @@ interface ResultsData {
 export default function AllResults() {
   const [, navigate] = useLocation();
   const [selectedExamId, setSelectedExamId] = useState<string>("");
+  
+  // Get examId from URL params if coming from exam records
+  const urlParts = window.location.pathname.split('/');
+  const examIdFromUrl = urlParts[2]; // /results/:examId
+  
+  // Use URL exam ID if present, otherwise use selected exam ID
+  const effectiveExamId = examIdFromUrl || selectedExamId;
 
   const { data: exams = [], isLoading: examsLoading } = useQuery<Exam[]>({
     queryKey: ["/api/exams"],
   });
 
   const { data: results, isLoading: resultsLoading } = useQuery<ResultsData>({
-    queryKey: ["/api/results", selectedExamId],
-    enabled: !!selectedExamId,
+    queryKey: ["/api/results", effectiveExamId],
+    enabled: !!effectiveExamId,
   });
 
   const handleExportCSV = () => {
@@ -116,29 +123,31 @@ export default function AllResults() {
           </Button>
         </div>
 
-        <div className="mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Exam</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedExamId} onValueChange={setSelectedExamId}>
-                <SelectTrigger className="w-full md:w-96">
-                  <SelectValue placeholder="Choose an exam to view results" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exams.map((exam) => (
-                    <SelectItem key={exam.id} value={exam.id.toString()}>
-                      {exam.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-        </div>
+        {!examIdFromUrl && (
+          <div className="mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Exam</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={selectedExamId} onValueChange={setSelectedExamId}>
+                  <SelectTrigger className="w-full md:w-96">
+                    <SelectValue placeholder="Choose an exam to view results" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exams.map((exam) => (
+                      <SelectItem key={exam.id} value={exam.id}>
+                        {exam.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-        {selectedExamId && (
+        {effectiveExamId && (
           <>
             {resultsLoading ? (
               <div className="flex items-center justify-center py-16">
@@ -170,7 +179,7 @@ export default function AllResults() {
                         </div>
                         <div className="ml-4">
                           <p className="text-sm font-medium text-slate-600">Total Attempts</p>
-                          <p className="text-2xl font-bold text-slate-900">{results.attempts.length}</p>
+                          <p className="text-2xl font-bold text-slate-900">{results.attempts?.length || 0}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -185,7 +194,7 @@ export default function AllResults() {
                         <div className="ml-4">
                           <p className="text-sm font-medium text-slate-600">Average Score</p>
                           <p className="text-2xl font-bold text-slate-900">
-                            {results.attempts.length > 0
+                            {results.attempts && results.attempts.length > 0
                               ? Math.round(results.attempts.reduce((sum, attempt) => sum + (attempt.percentage || 0), 0) / results.attempts.length)
                               : 0}%
                           </p>
@@ -214,7 +223,7 @@ export default function AllResults() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>Student Results</CardTitle>
-                      {results.attempts.length > 0 && (
+                      {results.attempts && results.attempts.length > 0 && (
                         <Button onClick={handleExportCSV} variant="outline">
                           <Download className="w-4 h-4 mr-2" />
                           Export CSV
@@ -223,7 +232,7 @@ export default function AllResults() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {results.attempts.length === 0 ? (
+                    {!results.attempts || results.attempts.length === 0 ? (
                       <div className="text-center py-16">
                         <Users className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                         <h3 className="text-lg font-semibold text-slate-900 mb-2">No attempts yet</h3>

@@ -267,15 +267,23 @@ export class FirebaseStorage implements IStorage {
   }
 
   async getExamAttemptsByExam(examId: string): Promise<ExamAttempt[]> {
-    const q = query(
-      collection(db, "examAttempts"), 
-      where("examId", "==", examId),
-      orderBy("startedAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => 
-      this.convertTimestamps({ id: doc.id, ...doc.data() }) as ExamAttempt
-    );
+    try {
+      // Get all exam attempts and filter in memory to avoid indexing issues
+      const querySnapshot = await getDocs(collection(db, "examAttempts"));
+      const allAttempts = querySnapshot.docs.map(doc => 
+        this.convertTimestamps({ id: doc.id, ...doc.data() }) as ExamAttempt
+      );
+      
+      // Filter by examId and sort by startedAt in memory
+      const examAttempts = allAttempts
+        .filter(attempt => attempt.examId === examId)
+        .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+      
+      return examAttempts;
+    } catch (error) {
+      console.error('Error getting exam attempts by exam ID:', error);
+      throw error;
+    }
   }
 
   async getExamAttemptsByUser(userId: string): Promise<ExamAttempt[]> {

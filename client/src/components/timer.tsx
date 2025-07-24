@@ -16,7 +16,7 @@ export default function Timer({ initialTime, onTimeUp, isActive }: TimerProps) {
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          onTimeUp();
+          setTimeout(() => onTimeUp(), 0); // Defer the call to avoid setState during render
           return 0;
         }
         return prev - 1;

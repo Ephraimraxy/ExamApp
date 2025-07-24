@@ -22,7 +22,8 @@ function Router() {
       <Route path="/exam/:examId/start" component={ExamInterface} />
       <Route path="/exam/:examId" component={ExamInterface} />
       <Route path="/results" component={AllResults} />
-      <Route path="/results/:attemptId" component={Results} />
+      <Route path="/results/:examId" component={AllResults} />
+      <Route path="/result/:attemptId" component={Results} />
       <Route path="/exam-records" component={ExamRecords} />
       <Route path="/student" component={AvailableExams} />
       <Route component={NotFound} />

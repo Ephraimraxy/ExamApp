@@ -145,6 +145,7 @@ export default function ExamSetup() {
 
   const updateExamMutation = useMutation({
     mutationFn: async (data: ExamFormData) => {
+      // Create a new exam instead of updating the existing one
       const examData = {
         title: data.title,
         description: data.description,
@@ -154,24 +155,28 @@ export default function ExamSetup() {
         isActive: data.isActive,
       };
 
-      await apiRequest("PUT", `/api/exams/${examId}`, examData);
+      const examResponse = await apiRequest("POST", "/api/exams", examData);
+      const newExam = await examResponse.json();
 
-      // TODO: Update questions (requires additional endpoints)
-      
-      return true;
+      // Create questions for the new exam
+      for (const question of data.questions) {
+        await apiRequest("POST", `/api/exams/${newExam.id}/questions`, question);
+      }
+
+      return newExam;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/exams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/exams/available"] });
       toast({
-        title: "Exam updated",
-        description: "The exam has been updated successfully.",
+        title: "New exam created",
+        description: "A new exam has been created based on your edits. The original exam remains unchanged.",
       });
-      navigate("/exams");
+      navigate("/exam-records");
     },
     onError: (error) => {
       toast({
-        title: "Failed to update exam",
+        title: "Failed to create new exam",
         description: error.message,
         variant: "destructive",
       });
@@ -227,7 +232,7 @@ export default function ExamSetup() {
             Back to Home
           </Button>
           <h1 className="text-3xl font-bold text-slate-900">
-            {isEdit ? "Edit Exam" : "Create New Exam"}
+            {isEdit ? "Create New Exam (Based on Existing)" : "Create New Exam"}
           </h1>
         </div>
 

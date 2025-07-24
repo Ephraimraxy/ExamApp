@@ -170,7 +170,7 @@ export default function ExamRecords() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/results`)}
+                                onClick={() => navigate(`/results/${exam.id}`)}
                               >
                                 Results
                               </Button>

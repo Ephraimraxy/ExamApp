@@ -476,6 +476,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Results endpoint for exam records page
+  app.get("/api/results/:examId", async (req: any, res) => {
+    try {
+      const examId = req.params.examId;
+      
+      // Get exam details
+      const exam = await storage.getExamById(examId);
+      if (!exam) {
+        return res.status(404).json({ message: "Exam not found" });
+      }
+
+      // Get all attempts for this exam
+      const attempts = await storage.getExamAttemptsByExam(examId);
+      
+      // Format attempts with percentage calculation and ensure required fields
+      const formattedAttempts = attempts.map(attempt => ({
+        ...attempt,
+        studentName: attempt.studentName || "Unknown Student",
+        studentEmail: attempt.studentEmail || "unknown@example.com",
+        percentage: attempt.totalQuestions && attempt.totalQuestions > 0 
+          ? Math.round(((attempt.score || 0) / attempt.totalQuestions) * 100)
+          : 0
+      }));
+
+      res.json({
+        exam,
+        attempts: formattedAttempts
+      });
+    } catch (error) {
+      console.error("Error fetching exam results:", error);
+      res.status(500).json({ message: "Failed to fetch results" });
+    }
+  });
+
   app.get("/api/exams/:examId/results", async (req: any, res) => {
     try {
       const examId = req.params.examId;

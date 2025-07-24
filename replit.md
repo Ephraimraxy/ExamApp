@@ -121,7 +121,24 @@ Preferred communication style: Simple, everyday language.
 - Development vs production optimizations
 
 ### Database Management
-- Drizzle migrations for schema updates
-- Connection pooling for performance
-- WebSocket support for serverless deployment
-- Automatic schema validation and type generation
+- Firebase Firestore for real-time data persistence
+- String-based IDs with Firebase document references
+- In-memory filtering to avoid complex indexing requirements
+- Automatic timestamp conversion for date fields
+
+## Recent Changes (July 24, 2025)
+
+### Firebase Migration & Bug Fixes
+- **Completed**: Successfully migrated from PostgreSQL to Firebase Firestore
+- **Fixed**: Missing /student route causing 404 errors
+- **Fixed**: Timer component setState during render warning with deferred callback
+- **Fixed**: Firebase indexing issues by implementing in-memory filtering for complex queries
+- **Implemented**: Direct results navigation from exam records table to avoid question selection step
+- **Modified**: Edit functionality now creates new exam records instead of updating existing ones
+- **Fixed**: All-results page properly handles URL parameters for direct exam access
+
+### User Interface Improvements
+- **Enhanced**: Exam records page with proper Results button navigation
+- **Fixed**: View Results page implementation with proper data loading
+- **Improved**: Error handling throughout the application
+- **Added**: Comprehensive exam attempt tracking and percentage calculations
