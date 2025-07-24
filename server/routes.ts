@@ -614,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimeType: req.file.mimetype,
         size: req.file.size,
         path: req.file.path,
-        duration: undefined, // Can be populated later with video metadata
+        // duration field omitted - can be added later when video metadata is available
       };
 
       const video = await storage.createVideo(videoData);
