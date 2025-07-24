@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Trash2, FileText, Eye, Home } from "lucide-react";
+import { Download, FileText, Eye, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/utils";
 import { useLocation } from "wouter";
@@ -19,31 +19,13 @@ interface UploadedFile {
 
 export default function FileDetails() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
   const { data: files = [], isLoading } = useQuery<UploadedFile[]>({
     queryKey: ['/api/files'],
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/files/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete file');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/files'] });
-      toast({ title: "File deleted successfully!" });
-    },
-    onError: () => {
-      toast({
-        title: "Delete failed",
-        description: "Could not delete the file",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const handleDownload = (file: UploadedFile) => {
     window.open(`/api/files/${file.id}/download`, '_blank');
@@ -167,16 +149,6 @@ export default function FileDetails() {
                           >
                             <Download className="w-4 h-4" />
                             Download
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deleteMutation.mutate(file.id)}
-                            className="flex items-center gap-1"
-                            title="Delete file"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
                           </Button>
                         </div>
                       </TableCell>

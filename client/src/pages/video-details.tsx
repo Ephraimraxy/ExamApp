@@ -1,9 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Play, Trash2, Video, Home, Download } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Play, Video, Home, Download } from "lucide-react";
 import { formatBytes } from "@/lib/utils";
 import { useLocation } from "wouter";
 
@@ -19,32 +18,13 @@ interface VideoFile {
 }
 
 export default function VideoDetails() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
   const { data: videos = [], isLoading } = useQuery<VideoFile[]>({
     queryKey: ['/api/videos'],
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete video');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/videos'] });
-      toast({ title: "Video deleted successfully!" });
-    },
-    onError: () => {
-      toast({
-        title: "Delete failed",
-        description: "Could not delete the video",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const handlePlay = (video: VideoFile) => {
     window.open(`/api/videos/${video.id}/stream`, '_blank');
@@ -154,16 +134,6 @@ export default function VideoDetails() {
                           >
                             <Download className="w-4 h-4" />
                             Download
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deleteMutation.mutate(video.id)}
-                            className="flex items-center gap-1"
-                            title="Delete video"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
                           </Button>
                         </div>
                       </TableCell>
