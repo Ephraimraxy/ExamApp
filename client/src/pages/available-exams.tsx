@@ -189,10 +189,7 @@ export default function AvailableExams() {
             <CardContent className="py-16 text-center">
               <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 mb-2">No exams available</h3>
-              <p className="text-slate-600 mb-6">There are currently no active exams to take.</p>
-              <Button onClick={() => navigate("/setup")}>
-                Create an Exam
-              </Button>
+              <p className="text-slate-600">There are currently no active exams to take.</p>
             </CardContent>
           </Card>
         ) : (
